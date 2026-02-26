@@ -817,6 +817,11 @@ export async function loadCliConfig(
     bugCommand: settings.advanced?.bugCommand,
     model: resolvedModel,
     maxSessionTurns: settings.model?.maxSessionTurns,
+    longOperationPrompt: {
+      enabled: settings.model?.longOperationPrompt?.enabled,
+      turnThreshold: settings.model?.longOperationPrompt?.turnThreshold,
+      timeThreshold: settings.model?.longOperationPrompt?.timeThreshold,
+    },
     experimentalZedIntegration: argv.experimentalAcp || false,
     listExtensions: argv.listExtensions || false,
     listSessions: argv.listSessions || false,

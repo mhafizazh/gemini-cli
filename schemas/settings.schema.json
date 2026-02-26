@@ -526,6 +526,32 @@
           "default": -1,
           "type": "number"
         },
+        "longOperationPrompt": {
+          "title": "Long Operation Prompt",
+          "description": "Prompt user to continue when operations take too long.",
+          "markdownDescription": "Prompt user to continue when operations take too long.\n\n- Category: `Model`\n- Requires restart: `no`",
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable prompting user during long operations"
+            },
+            "turnThreshold": {
+              "type": "number",
+              "default": 10,
+              "minimum": 1,
+              "description": "Number of turns after which to prompt user"
+            },
+            "timeThreshold": {
+              "type": "number",
+              "default": 60,
+              "minimum": 1,
+              "description": "Time in seconds after which to prompt user"
+            }
+          },
+          "additionalProperties": false
+        },
         "summarizeToolOutput": {
           "title": "Summarize Tool Output",
           "description": "Enables or disables summarization of tool output. Configure per-tool token budgets (for example {\"run_shell_command\": {\"tokenBudget\": 2000}}). Currently only the run_shell_command tool supports summarization.",

@@ -836,6 +836,50 @@ const SETTINGS_SCHEMA = {
           'Maximum number of user/model/tool turns to keep in a session. -1 means unlimited.',
         showInDialog: true,
       },
+      longOperationPrompt: {
+        type: 'object',
+        label: 'Long Operation Prompt',
+        category: 'Model',
+        requiresRestart: false,
+        default: undefined as
+          | {
+              enabled?: boolean;
+              turnThreshold?: number;
+              timeThreshold?: number;
+            }
+          | undefined,
+        description: 'Prompt user to continue when operations take too long.',
+        showInDialog: false,
+        properties: {
+          enabled: {
+            type: 'boolean',
+            label: 'Enabled',
+            category: 'Model',
+            requiresRestart: false,
+            default: false,
+            description: 'Enable prompting user during long operations',
+            showInDialog: false,
+          },
+          turnThreshold: {
+            type: 'number',
+            label: 'Turn Threshold',
+            category: 'Model',
+            requiresRestart: false,
+            default: 10,
+            description: 'Number of turns after which to prompt user',
+            showInDialog: false,
+          },
+          timeThreshold: {
+            type: 'number',
+            label: 'Time Threshold',
+            category: 'Model',
+            requiresRestart: false,
+            default: 60,
+            description: 'Time in seconds after which to prompt user',
+            showInDialog: false,
+          },
+        },
+      },
       summarizeToolOutput: {
         type: 'object',
         label: 'Summarize Tool Output',

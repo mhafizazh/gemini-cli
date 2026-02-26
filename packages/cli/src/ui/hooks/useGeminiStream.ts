@@ -1019,6 +1019,18 @@ export const useGeminiStream = (
     [addItem, config],
   );
 
+  const handleLongOperationPromptEvent = useCallback(
+    (turns: number, elapsedSeconds: number) => {
+      addItem({
+        type: 'warning',
+        text:
+          `The operation is taking longer than expected (${turns} turns, ${elapsedSeconds}s elapsed). ` +
+          `You can stop by canceling or adjust the threshold in settings.`,
+      });
+    },
+    [addItem],
+  );
+
   const handleContextWindowWillOverflowEvent = useCallback(
     (estimatedRequestTokenCount: number, remainingTokenCount: number) => {
       onCancelSubmit(true);
@@ -1190,6 +1202,12 @@ export const useGeminiStream = (
           case ServerGeminiEventType.MaxSessionTurns:
             handleMaxSessionTurnsEvent();
             break;
+          case ServerGeminiEventType.LongOperationPrompt:
+            handleLongOperationPromptEvent(
+              event.value.turns,
+              event.value.elapsedSeconds,
+            );
+            break;
           case ServerGeminiEventType.ContextWindowWillOverflow:
             handleContextWindowWillOverflowEvent(
               event.value.estimatedRequestTokenCount,
@@ -1240,6 +1258,7 @@ export const useGeminiStream = (
       handleChatCompressionEvent,
       handleFinishedEvent,
       handleMaxSessionTurnsEvent,
+      handleLongOperationPromptEvent,
       handleContextWindowWillOverflowEvent,
       handleCitationEvent,
       handleChatModelEvent,
