@@ -82,6 +82,8 @@ type BeforeAgentHookReturn =
 export class GeminiClient {
   private chat?: GeminiChat;
   private sessionTurnCount = 0;
+  private currentTurnStartTime?: number;
+  private lastUserPromptTurn = 0;
 
   private readonly loopDetector: LoopDetectionService;
   private readonly compressionService: ChatCompressionService;
@@ -559,6 +561,29 @@ export class GeminiClient {
     let turn = new Turn(this.getChat(), prompt_id);
 
     this.sessionTurnCount++;
+
+    // Check if we should prompt the user about long operation
+    if (this.config.getLongOperationPromptEnabled()) {
+      const shouldPrompt = this.shouldPromptUser();
+
+      if (shouldPrompt) {
+        const elapsedSeconds = this.currentTurnStartTime
+          ? Math.floor((Date.now() - this.currentTurnStartTime) / 1000)
+          : 0;
+
+        yield {
+          type: GeminiEventType.LongOperationPrompt,
+          value: {
+            turns: this.sessionTurnCount,
+            elapsedSeconds,
+          },
+        };
+
+        // Mark that we prompted at this turn
+        this.lastUserPromptTurn = this.sessionTurnCount;
+      }
+    }
+
     if (
       this.config.getMaxSessionTurns() > 0 &&
       this.sessionTurnCount > this.config.getMaxSessionTurns()
@@ -796,6 +821,7 @@ export class GeminiClient {
   ): AsyncGenerator<ServerGeminiStreamEvent, Turn> {
     if (!isInvalidStreamRetry) {
       this.config.resetTurn();
+      this.currentTurnStartTime = Date.now();
     }
 
     const hooksEnabled = this.config.getEnableHooks();
@@ -1112,5 +1138,34 @@ export class GeminiClient {
     if (result.maskedCount > 0) {
       this.getChat().setHistory(result.newHistory);
     }
+  }
+
+  /**
+   * Determines if the user should be prompted about a long-running operation.
+   * @returns true if the user should be prompted, false otherwise
+   */
+  private shouldPromptUser(): boolean {
+    const turnThreshold = this.config.getLongOperationPromptTurnThreshold();
+    const timeThreshold = this.config.getLongOperationPromptTimeThreshold();
+
+    // Don't prompt too frequently (wait at least turnThreshold turns)
+    if (this.sessionTurnCount - this.lastUserPromptTurn < turnThreshold) {
+      return false;
+    }
+
+    // Check if we've exceeded turn threshold
+    if (this.sessionTurnCount >= turnThreshold) {
+      return true;
+    }
+
+    // Check if we've exceeded time threshold
+    if (this.currentTurnStartTime) {
+      const elapsedSeconds = (Date.now() - this.currentTurnStartTime) / 1000;
+      if (elapsedSeconds >= timeThreshold) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

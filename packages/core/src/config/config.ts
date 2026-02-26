@@ -437,6 +437,11 @@ export interface ConfigParameters {
   model: string;
   disableLoopDetection?: boolean;
   maxSessionTurns?: number;
+  longOperationPrompt?: {
+    enabled?: boolean;
+    turnThreshold?: number;
+    timeThreshold?: number;
+  };
   experimentalZedIntegration?: boolean;
   listSessions?: boolean;
   deleteSession?: string;
@@ -586,6 +591,9 @@ export class Config {
 
   private _activeModel: string;
   private readonly maxSessionTurns: number;
+  private readonly longOperationPromptEnabled: boolean;
+  private readonly longOperationPromptTurnThreshold: number;
+  private readonly longOperationPromptTimeThreshold: number;
   private readonly listSessions: boolean;
   private readonly deleteSession: string | undefined;
   private readonly listExtensions: boolean;
@@ -805,6 +813,12 @@ export class Config {
         DEFAULT_PROTECT_LATEST_TURN,
     };
     this.maxSessionTurns = params.maxSessionTurns ?? -1;
+    this.longOperationPromptEnabled =
+      params.longOperationPrompt?.enabled ?? false;
+    this.longOperationPromptTurnThreshold =
+      params.longOperationPrompt?.turnThreshold ?? 10;
+    this.longOperationPromptTimeThreshold =
+      params.longOperationPrompt?.timeThreshold ?? 60;
     this.experimentalZedIntegration =
       params.experimentalZedIntegration ?? false;
     this.listSessions = params.listSessions ?? false;
@@ -1286,6 +1300,18 @@ export class Config {
 
   getMaxSessionTurns(): number {
     return this.maxSessionTurns;
+  }
+
+  getLongOperationPromptEnabled(): boolean {
+    return this.longOperationPromptEnabled;
+  }
+
+  getLongOperationPromptTurnThreshold(): number {
+    return this.longOperationPromptTurnThreshold;
+  }
+
+  getLongOperationPromptTimeThreshold(): number {
+    return this.longOperationPromptTimeThreshold;
   }
 
   setQuotaErrorOccurred(value: boolean): void {

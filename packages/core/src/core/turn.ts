@@ -69,6 +69,7 @@ export enum GeminiEventType {
   ModelInfo = 'model_info',
   AgentExecutionStopped = 'agent_execution_stopped',
   AgentExecutionBlocked = 'agent_execution_blocked',
+  LongOperationPrompt = 'long_operation_prompt',
 }
 
 export type ServerGeminiRetryEvent = {
@@ -108,6 +109,14 @@ export type ServerGeminiInvalidStreamEvent = {
 export type ServerGeminiModelInfoEvent = {
   type: GeminiEventType.ModelInfo;
   value: string;
+};
+
+export type ServerGeminiLongOperationPromptEvent = {
+  type: GeminiEventType.LongOperationPrompt;
+  value: {
+    turns: number;
+    elapsedSeconds: number;
+  };
 };
 
 export interface StructuredError {
@@ -233,7 +242,8 @@ export type ServerGeminiStreamEvent =
   | ServerGeminiInvalidStreamEvent
   | ServerGeminiModelInfoEvent
   | ServerGeminiAgentExecutionStoppedEvent
-  | ServerGeminiAgentExecutionBlockedEvent;
+  | ServerGeminiAgentExecutionBlockedEvent
+  | ServerGeminiLongOperationPromptEvent;
 
 // A turn manages the agentic loop turn within the server context.
 export class Turn {
