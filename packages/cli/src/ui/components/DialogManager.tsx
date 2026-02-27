@@ -230,6 +230,15 @@ export const DialogManager = ({
       />
     );
   }
+  if (uiState.slowResponseConfirmationRequest) {
+    return (
+      <ConsentPrompt
+        prompt={uiState.slowResponseConfirmationRequest.prompt}
+        onConfirm={uiState.slowResponseConfirmationRequest.onConfirm}
+        terminalWidth={terminalWidth}
+      />
+    );
+  }
   if (uiState.isThemeDialogOpen) {
     return (
       <Box flexDirection="column">

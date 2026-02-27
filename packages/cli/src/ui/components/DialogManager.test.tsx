@@ -162,6 +162,15 @@ describe('DialogManager', () => {
       },
       'ConsentPrompt',
     ],
+    [
+      {
+        slowResponseConfirmationRequest: {
+          prompt: 'Gemini is taking longer than expected. Continue waiting?',
+          onConfirm: vi.fn(),
+        },
+      },
+      'ConsentPrompt',
+    ],
     [{ isThemeDialogOpen: true }, 'ThemeDialog'],
     [{ isSettingsDialogOpen: true }, 'SettingsDialog'],
     [{ isModelDialogOpen: true }, 'ModelDialog'],

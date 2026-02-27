@@ -156,6 +156,7 @@ import {
   WARNING_PROMPT_DURATION_MS,
   QUEUE_ERROR_DISPLAY_DURATION_MS,
   EXPAND_HINT_DURATION_MS,
+  SLOW_RESPONSE_CONTINUE_PROMPT_DELAY_MS,
 } from './constants.js';
 import { LoginWithGoogleRestartDialog } from './auth/LoginWithGoogleRestartDialog.js';
 import { NewAgentsChoice } from './components/NewAgentsNotification.js';
@@ -957,8 +958,11 @@ Logging in with Google... Restarting Gemini CLI to continue.
 
   const [authConsentRequest, setAuthConsentRequest] =
     useState<ConfirmationRequest | null>(null);
+  const [slowResponseConfirmationRequest, setSlowResponseConfirmationRequest] =
+    useState<ConfirmationRequest | null>(null);
   const [permissionConfirmationRequest, setPermissionConfirmationRequest] =
     useState<PermissionConfirmationRequest | null>(null);
+  const slowResponsePromptShownRef = useRef(false);
 
   useEffect(() => {
     const handleConsentRequest = (payload: ConsentRequestPayload) => {
@@ -2034,6 +2038,7 @@ Logging in with Google... Restarting Gemini CLI to continue.
     !!commandConfirmationRequest ||
     !!authConsentRequest ||
     !!permissionConfirmationRequest ||
+    !!slowResponseConfirmationRequest ||
     !!customDialog ||
     confirmUpdateExtensionRequests.length > 0 ||
     !!loopDetectionConfirmationRequest ||
@@ -2068,7 +2073,7 @@ Logging in with Google... Restarting Gemini CLI to continue.
   const hasLoopDetectionConfirmationRequest =
     !!loopDetectionConfirmationRequest;
 
-  const hasPendingActionRequired =
+  const hasPendingActionRequiredWithoutSlowResponse =
     hasPendingToolConfirmation ||
     !!commandConfirmationRequest ||
     !!authConsentRequest ||
@@ -2077,6 +2082,50 @@ Logging in with Google... Restarting Gemini CLI to continue.
     !!proQuotaRequest ||
     !!validationRequest ||
     !!customDialog;
+
+  const hasPendingActionRequired =
+    hasPendingActionRequiredWithoutSlowResponse ||
+    !!slowResponseConfirmationRequest;
+
+  useEffect(() => {
+    if (streamingState === StreamingState.Idle) {
+      slowResponsePromptShownRef.current = false;
+      setSlowResponseConfirmationRequest(null);
+      return;
+    }
+
+    if (streamingState !== StreamingState.Responding) {
+      return;
+    }
+
+    if (
+      slowResponsePromptShownRef.current ||
+      slowResponseConfirmationRequest ||
+      hasPendingActionRequiredWithoutSlowResponse
+    ) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      slowResponsePromptShownRef.current = true;
+      setSlowResponseConfirmationRequest({
+        prompt: 'Gemini is taking longer than expected. Continue waiting?',
+        onConfirm: (confirmed: boolean) => {
+          setSlowResponseConfirmationRequest(null);
+          if (!confirmed) {
+            cancelOngoingRequest();
+          }
+        },
+      });
+    }, SLOW_RESPONSE_CONTINUE_PROMPT_DELAY_MS);
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    streamingState,
+    slowResponseConfirmationRequest,
+    hasPendingActionRequiredWithoutSlowResponse,
+    cancelOngoingRequest,
+  ]);
 
   const allowPlanMode =
     config.isPlanEnabled() &&
@@ -2239,6 +2288,7 @@ Logging in with Google... Restarting Gemini CLI to continue.
       commandContext,
       commandConfirmationRequest,
       authConsentRequest,
+      slowResponseConfirmationRequest,
       confirmUpdateExtensionRequests,
       loopDetectionConfirmationRequest,
       permissionConfirmationRequest,
@@ -2365,6 +2415,7 @@ Logging in with Google... Restarting Gemini CLI to continue.
       commandContext,
       commandConfirmationRequest,
       authConsentRequest,
+      slowResponseConfirmationRequest,
       confirmUpdateExtensionRequests,
       loopDetectionConfirmationRequest,
       permissionConfirmationRequest,

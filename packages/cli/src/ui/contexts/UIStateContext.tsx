@@ -97,6 +97,7 @@ export interface UIState {
   commandContext: CommandContext;
   commandConfirmationRequest: ConfirmationRequest | null;
   authConsentRequest: ConfirmationRequest | null;
+  slowResponseConfirmationRequest?: ConfirmationRequest | null;
   confirmUpdateExtensionRequests: ConfirmationRequest[];
   loopDetectionConfirmationRequest: LoopDetectionConfirmationRequest | null;
   permissionConfirmationRequest: PermissionConfirmationRequest | null;
