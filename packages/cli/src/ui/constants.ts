@@ -38,7 +38,7 @@ export const SLOW_RESPONSE_CONTINUE_PROMPT_DELAY_MS = 300000;
 
 export const DEFAULT_BACKGROUND_OPACITY = 0.16;
 export const DEFAULT_INPUT_BACKGROUND_OPACITY = 0.24;
-export const DEFAULT_BORDER_OPACITY = 0.2;
+export const DEFAULT_BORDER_OPACITY = 0.4;
 
 export const KEYBOARD_SHORTCUTS_URL =
   'https://geminicli.com/docs/cli/keyboard-shortcuts/';
